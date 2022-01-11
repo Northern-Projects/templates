@@ -26,13 +26,13 @@ export default class extends AriaController {
     const width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
     if (width < 1200) {
       if (!this.dashNavTarget.classList.contains('minimized')) {
-        this.changeToSbLogo();
+        this.changeToSmallLogo();
         this.dashNavTarget.classList.add('minimized');
       }
     }
     else {
       if (this.dashNavTarget.classList.contains('minimized')) {
-        this.changeToSaudabeLogo();
+        this.changeToBigLogo();
         this.dashNavTarget.classList.remove('minimized');
       }
     }
@@ -42,10 +42,10 @@ export default class extends AriaController {
   minimizeMenu = () => {
     this.dashNavTarget.classList.toggle('minimized');
     if (this.dashNavTarget.classList.contains('minimized')) {
-      this.changeToSbLogo();
+      this.changeToSmallLogo();
       this.addTooltipMenu(this.dashNavTarget.querySelectorAll('.dash-nav-item'))
     } else {
-      this.changeToSaudabeLogo();
+      this.changeToBigLogo();
       this.removeTooltipMenu(this.dashNavTarget.querySelectorAll('.dash-nav-item'))
     }
     this.ariaNav(this.dashNavTarget, this.btnToggleTargets);
@@ -70,16 +70,17 @@ export default class extends AriaController {
     })
   }
 
-  changeToSbLogo = () => {
-    const logoImg = document.querySelector('#saudabe-logo');
-    logoImg.src = "https://saudabe.com.br/wp-content/uploads/2021/06/logo.png";
-    logoImg.id = "sb-logo";
+  changeToSmallLogo = () => {
+    const logoImg = document.querySelector('#company-logo');
+    
+    logoImg.src = "https://avatars.githubusercontent.com/u/69258991?s=200&v=4";
+    logoImg.id = "small-company-logo";
   }
 
-  changeToSaudabeLogo = () => {
-    const logoImg = document.querySelector('#sb-logo');
-    logoImg.src = "https://saudabe.com.br/wp-content/uploads/2021/06/cropped-logo_aberto-1024x273.png";
-    logoImg.id = "saudabe-logo";
+  changeToBigLogo = () => {
+    const logoImg = document.querySelector('#small-company-logo');
+    logoImg.src = "https://www.northern.com.br/assets/brand/northern-white-b016f6382c8e107fb942a502d1c2543e5cfa08889189896517031bc3837cf523.png";
+    logoImg.id = "company-logo";
   }
 
   disconnect = () => {
