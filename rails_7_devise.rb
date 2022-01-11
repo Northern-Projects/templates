@@ -35,47 +35,6 @@ gsub_file('app/assets/stylesheets/application.scss', '@import "bootstrap/scss/bo
 ########################################
 gsub_file('config/environments/development.rb', /config\.assets\.debug.*/, 'config.assets.debug = false')
 
-# Devise + Turbo
-########################################
-inject_into_file 'config/initializers/devise.rb', after: "# frozen_string_literal: true\n" do
-  <<~RUBY
-    Rails.application.reloader.to_prepare do
-      class TurboFailureApp < Devise::FailureApp
-        def respond
-          if request_format == :turbo_stream
-            redirect
-          else
-            super
-          end
-        end
-
-        def skip_format?
-          %w(html turbo_stream */*).include? request_format.to_s
-        end
-      end
-
-      class TurboController < ApplicationController
-        class Responder < ActionController::Responder
-          def to_turbo_stream
-            controller.render(options.merge(formats: :html))
-          rescue ActionView::MissingTemplate => error
-            if get?
-              raise error
-            elsif has_errors? && default_action
-              render rendering_options.merge(formats: :html, status: :unprocessable_entity)
-            else
-              redirect_to navigation_location
-            end
-          end
-        end
-
-        self.responder = Responder
-        respond_to :html, :turbo_stream
-      end
-    end
-  RUBY
-end
-
 # Layout
 ########################################
 style = <<~HTML
@@ -172,6 +131,47 @@ after_bundle do
   ########################################
   rails_command 'db:migrate'
   generate('devise:views')
+
+  # Devise + Turbo
+  ########################################
+  inject_into_file 'config/initializers/devise.rb', after: "# frozen_string_literal: true\n" do
+    <<~RUBY
+      Rails.application.reloader.to_prepare do
+        class TurboFailureApp < Devise::FailureApp
+          def respond
+            if request_format == :turbo_stream
+              redirect
+            else
+              super
+            end
+          end
+
+          def skip_format?
+            %w(html turbo_stream */*).include? request_format.to_s
+          end
+        end
+
+        class TurboController < ApplicationController
+          class Responder < ActionController::Responder
+            def to_turbo_stream
+              controller.render(options.merge(formats: :html))
+            rescue ActionView::MissingTemplate => error
+              if get?
+                raise error
+              elsif has_errors? && default_action
+                render rendering_options.merge(formats: :html, status: :unprocessable_entity)
+              else
+                redirect_to navigation_location
+              end
+            end
+          end
+
+          self.responder = Responder
+          respond_to :html, :turbo_stream
+        end
+      end
+    RUBY
+  end
 
   # Pages Controller
   ########################################
