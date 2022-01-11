@@ -1,0 +1,33 @@
+<nav class="dash-nav" role="navigation" aria-label="navbar" data-menu-target="dashNav">
+  <div class="dash-nav-icons">
+    <div class="logo f-column">
+      <%= image_tag("https://avatars.githubusercontent.com/u/69258991?s=200&v=4", id: "saudabe-logo" ) %>
+      <button remote="true" id="bars" title='menu-burger' tabindex="0" type="button" data-menu-target="btnToggle" data-action="click->menu#minimizeMenu" aria-expanded="false">
+        <div class="hamburger" id="hamburger-3" tabindex="-1">
+          <span class="line"></span>
+          <span class="line"></span>
+          <span class="line"></span>
+        </div>
+      </button>
+    </div>
+  </div>
+  <div class="dash-nav-items f-column">
+    <div class="dash-nav-options">
+      <%= sidebar_links %>
+    </div>
+    <%# COMUM %>
+    <%= link_to destroy_user_session_path, method: :delete, class: "dash-nav-item f-column f-center", data: { :'original-title'=>"sair", toggle: 'tooltip', placement: 'right' } do %>
+      <%= inline_svg_tag('logout.svg', title: "Sair", aria: true) %>
+      <p>Sair</p>
+    <% end %>
+  </div>
+</nav>
+<div id="nav-menu" role="menubar" class="menu-nav dash">
+  <button remote="true" id="menu-icon" title='menu-burger' tabindex="0" type="button" data-menu-target="btnToggle" data-action="click->menu#minimizeMenu" aria-expanded="false">
+    <div class="hamburger" id="hamburger-3" tabindex="-1" id="ham-3-menu">
+      <span class="line"></span>
+      <span class="line"></span>
+      <span class="line"></span>
+    </div>
+  </button>
+</div>

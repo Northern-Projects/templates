@@ -28,28 +28,59 @@ run 'rm -rf app/assets/stylesheets'
 run 'rm -rf vendor'
 run 'curl -L https://github.com/lewagon/rails-stylesheets/archive/master.zip > stylesheets.zip'
 run 'unzip stylesheets.zip -d app/assets && rm stylesheets.zip && mv app/assets/rails-stylesheets-master app/assets/stylesheets'
+gsub_file('assets/stylesheets/application.scss', '@import "bootstrap/scss/bootstrap";', '@import url("https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.css");')
 
 # Dev environment
 ########################################
 gsub_file('config/environments/development.rb', /config\.assets\.debug.*/, 'config.assets.debug = false')
 
-# Layout
+# Devise + Turbo
 ########################################
-if Rails.version < "6"
-  scripts = <<~HTML
-    <%= javascript_include_tag 'application', 'data-turbolinks-track': 'reload', defer: true %>
-        <%= javascript_pack_tag 'application', 'data-turbolinks-track': 'reload' %>
-  HTML
-  gsub_file('app/views/layouts/application.html.erb', "<%= javascript_include_tag 'application', 'data-turbolinks-track': 'reload' %>", scripts)
+inject_into_file 'config/initializers/devise.rb', after: "# frozen_string_literal: true\n" do
+  <<~RUBY
+    Rails.application.reloader.to_prepare do
+      class TurboFailureApp < Devise::FailureApp
+        def respond
+          if request_format == :turbo_stream
+            redirect
+          else
+            super
+          end
+        end
+
+        def skip_format?
+          %w(html turbo_stream */*).include? request_format.to_s
+        end
+      end
+
+      class TurboController < ApplicationController
+        class Responder < ActionController::Responder
+          def to_turbo_stream
+            controller.render(options.merge(formats: :html))
+          rescue ActionView::MissingTemplate => error
+            if get?
+              raise error
+            elsif has_errors? && default_action
+              render rendering_options.merge(formats: :html, status: :unprocessable_entity)
+            else
+              redirect_to navigation_location
+            end
+          end
+        end
+
+        self.responder = Responder
+        respond_to :html, :turbo_stream
+      end
+    end
+  RUBY
 end
 
-gsub_file('app/views/layouts/application.html.erb', "<%= javascript_pack_tag 'application', 'data-turbolinks-track': 'reload' %>", "<%= javascript_pack_tag 'application', 'data-turbolinks-track': 'reload', defer: true %>")
-
+# Layout
+########################################
 style = <<~HTML
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-      <%= stylesheet_link_tag 'application', media: 'all', 'data-turbolinks-track': 'reload' %>
+  <%= stylesheet_link_tag 'application', media: 'all', 'data-turbo-track': 'reload' %>
 HTML
-gsub_file('app/views/layouts/application.html.erb', "<%= stylesheet_link_tag 'application', media: 'all', 'data-turbolinks-track': 'reload' %>", style)
+gsub_file('app/views/layouts/application.html.erb', '<%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>', style)
 
 # Flashes
 ########################################
@@ -72,13 +103,17 @@ file 'app/views/shared/_flashes.html.erb', <<~HTML
   <% end %>
 HTML
 
-run 'curl -L https://github.com/lewagon/awesome-navbars/raw/master/templates/_navbar_wagon.html.erb > app/views/shared/_navbar.html.erb'
+# Sidebar
+########################################
+run 'curl https://raw.githubusercontent.com/Northern-Projects/templates/main/sidebar/sidebar.html.erb > app/views/shared/_sidebar.html.erb'
+run 'curl https://raw.githubusercontent.com/Northern-Projects/templates/main/sidebar/menu_controller.js > app/javascript/controllers/menu_controller.js'
+run 'curl https://raw.githubusercontent.com/Northern-Projects/templates/main/sidebar/aria_controller.js > app/javascript/controllers/aria_controller.js'
+run 'curl https://raw.githubusercontent.com/Northern-Projects/templates/main/sidebar/sidebar_helper.rb > app/helpers/sidebar_helper.rb'
 
 inject_into_file 'app/views/layouts/application.html.erb', after: '<body>' do
   <<-HTML
-
-    <%= render 'shared/navbar' %>
     <%= render 'shared/flashes' %>
+    <%= render 'shared/sidebar' if user_signed_in? %>
   HTML
 end
 
