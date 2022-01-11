@@ -62,13 +62,6 @@ file 'app/views/shared/_flashes.html.erb', <<~HTML
   <% end %>
 HTML
 
-# Sidebar
-########################################
-run 'curl https://raw.githubusercontent.com/Northern-Projects/templates/main/sidebar/sidebar.html.erb > app/views/shared/_sidebar.html.erb'
-run 'curl https://raw.githubusercontent.com/Northern-Projects/templates/main/sidebar/menu_controller.js > app/javascript/controllers/menu_controller.js'
-run 'curl https://raw.githubusercontent.com/Northern-Projects/templates/main/sidebar/aria_controller.js > app/javascript/controllers/aria_controller.js'
-run 'curl https://raw.githubusercontent.com/Northern-Projects/templates/main/sidebar/sidebar_helper.rb > app/helpers/sidebar_helper.rb'
-
 inject_into_file 'app/views/layouts/application.html.erb', after: '<body>' do
   <<-HTML
     <%= render 'shared/flashes' %>
@@ -192,6 +185,13 @@ after_bundle do
   # Bootstrap
   ########################################
   run './bin/importmap pin bootstrap'
+  
+  # Sidebar
+  ########################################
+  run 'curl https://raw.githubusercontent.com/Northern-Projects/templates/main/sidebar/sidebar.html.erb > app/views/shared/_sidebar.html.erb'
+  run 'curl https://raw.githubusercontent.com/Northern-Projects/templates/main/sidebar/menu_controller.js > app/javascript/controllers/menu_controller.js'
+  run 'curl https://raw.githubusercontent.com/Northern-Projects/templates/main/sidebar/aria_controller.js > app/javascript/controllers/aria_controller.js'
+  run 'curl https://raw.githubusercontent.com/Northern-Projects/templates/main/sidebar/sidebar_helper.rb > app/helpers/sidebar_helper.rb'
   
   # Dotenv
   ########################################
