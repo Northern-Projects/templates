@@ -29,6 +29,7 @@ run 'rm -rf app/assets/stylesheets'
 run 'rm -rf vendor'
 run 'curl -L https://github.com/lewagon/rails-stylesheets/archive/master.zip > stylesheets.zip'
 run 'curl https://raw.githubusercontent.com/Northern-Projects/templates/main/images/dash.svg > app/assets/images/dash.svg'
+run 'curl https://raw.githubusercontent.com/Northern-Projects/templates/main/images/logout.svg > app/assets/images/logout.svg'
 run 'unzip stylesheets.zip -d app/assets && rm stylesheets.zip && mv app/assets/rails-stylesheets-master app/assets/stylesheets'
 gsub_file('app/assets/stylesheets/application.scss', '@import "bootstrap/scss/bootstrap";', '@import url("https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.css");')
 
@@ -66,6 +67,7 @@ HTML
 
 inject_into_file 'app/views/layouts/application.html.erb', after: '<body>' do
   <<-HTML
+
     <%= render 'shared/flashes' %>
     <%= render 'shared/sidebar' if user_signed_in? %>
   HTML
@@ -211,7 +213,15 @@ after_bundle do
   run 'curl https://raw.githubusercontent.com/Northern-Projects/templates/main/sidebar/aria_controller.js > app/javascript/controllers/aria_controller.js'
   run 'curl https://raw.githubusercontent.com/Northern-Projects/templates/main/sidebar/sidebar_helper.rb > app/helpers/sidebar_helper.rb'
   run 'curl https://raw.githubusercontent.com/Northern-Projects/templates/main/sidebar/sidebar.scss > app/assets/stylesheets/components/_sidebar.scss'
-  inject_into_file "app/assets/stylesheets/components/_index.scss", after: '@import "navbar";\n', '@import "sidebar";\n"
+  run 'curl https://raw.githubusercontent.com/Northern-Projects/templates/main/sidebar/sizes.scss > app/assets/stylesheets/config/_sizes.scss'
+  run 'curl https://raw.githubusercontent.com/Northern-Projects/templates/main/sidebar/container.scss > app/assets/stylesheets/components/_container.scss'
+  inject_into_file "app/assets/stylesheets/components/_index.scss", after: "@import \"navbar\";\n" do 
+    '@import "sidebar";'
+  end
+
+  inject_into_file "app/assets/stylesheets/application.scss", after: "@import \"config/colors\";\n" do 
+    '@import "config/sizes";'
+  end
   
   # Dotenv
   ########################################
