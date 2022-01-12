@@ -65,13 +65,17 @@ file 'app/views/shared/_flashes.html.erb', <<~HTML
   <% end %>
 HTML
 
-inject_into_file 'app/views/layouts/application.html.erb', after: '<body>' do
-  <<-HTML
+base_layout = <<-HTML
+  <div data-controller="menu" >
+  <%= render 'shared/flashes' %>
+  <%= render 'shared/sidebar' if user_signed_in? %>
+  <div id="content-wrap" class="<%= user_signed_in? ? 'dash' : 'home f-column' %>">
+    <%= yield %>
+  </div>
+  </div>
+HTML
 
-    <%= render 'shared/flashes' %>
-    <%= render 'shared/sidebar' if user_signed_in? %>
-  HTML
-end
+gsub_file 'app/views/layouts/application.html.erb', '<%= yield %>', base_layout
 
 # Generators
 ########################################
@@ -234,5 +238,5 @@ after_bundle do
   # Git
   ########################################
   git add: '.'
-  git commit: "-m 'Initial commit with devise template from https://github.com/lewagon/rails-templates'"
+  git commit: "-m 'Initial commit with devise template from https://github.com/Northern-Projects/templates'"
 end

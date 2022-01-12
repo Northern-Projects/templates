@@ -15,7 +15,7 @@
   // Effects
   transition: width .3s;
   h2, h3 {
-    color: $white;
+    color: white;
   }
   .logo {
     align-items: center;
@@ -75,7 +75,7 @@
 // Styles for each link in the navbar
 .dash-nav-item {
   // Colors
-  color: $white;
+  color: white;
   opacity: 0.8;
   // Dimensions & Margin/Padding
   height: 3rem;
@@ -97,7 +97,7 @@
   }
   svg, img {
     display: block;
-    fill: $white;
+    fill: white;
     height: 1.5rem;;
     margin: auto;
     max-height: 1.75rem;
@@ -107,7 +107,7 @@
     margin: 0;
   }
   &:hover {
-    color: $white;
+    color: white;
     opacity: 1;
     text-decoration: none;
     text-shadow: 0px 0px 16px rgba(255, 255, 255, 0.5);
@@ -121,7 +121,7 @@
 }
 // Link to the current page
 .dash-nav-item.active {
-  background: $secondary;
+  background: $success;
   border-radius: 2rem;
   color: $primary;
   font-weight: 900;
@@ -226,12 +226,12 @@
       width: 100%;
     }
     a {
-      background: $white;
+      background: white;
       font-size: 2.5vw;
       line-height: 4vw;
       transition: color .2s, background-color .3s;
       &:hover {
-        background-color: $navy;
+        background-color: lightgray;
       }
     }
   }
@@ -292,7 +292,7 @@
     justify-content: space-between;
     height: $menu-height;
     svg {
-      fill: $white;
+      fill: white;
     }
   }
 }
