@@ -16,7 +16,7 @@
       <%= sidebar_links %>
     </div>
     <%# COMUM %>
-    <%= link_to destroy_user_session_path, method: :delete, class: "dash-nav-item f-column f-center", data: { :'original-title'=>"sair", toggle: 'tooltip', placement: 'right' } do %>
+    <%= link_to destroy_user_session_path, class: "dash-nav-item f-column f-center", data: { :'original-title'=>"sair", toggle: 'tooltip', placement: 'right', 'turbo-method': :delete } do %>
       <%= inline_svg_tag('logout.svg', title: "Sair", aria: true) %>
       <p>Sair</p>
     <% end %>

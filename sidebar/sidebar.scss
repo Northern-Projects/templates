@@ -27,6 +27,30 @@
     }
   }
 }
+.hamburger {
+  padding: .1rem;
+}
+.hamburger .line{
+  width: 2rem;
+  height: .2rem;
+  background-color: #ecf0f1;
+  display: block;
+  margin: 6px auto;
+  border-radius: 1rem;
+}
+.hamburger:hover{
+  cursor: pointer;
+}
+#bars, #menu-icon, #nav-home-toggler {
+  background: none;
+  border: none;
+  &:active:focus {
+    outline: none;
+  }
+}
+#bars {
+  padding: 0;
+} 
 
 .dash-nav.minimized {
   width: $nav-dash-min-width;

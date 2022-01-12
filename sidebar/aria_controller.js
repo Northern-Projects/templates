@@ -1,5 +1,4 @@
-import { Controller } from "stimulus";
-// import I18n from "../plugins/i18n";
+import { Controller } from "@hotwired/stimulus";
 
 export default class AriaController extends Controller {
   static targets = []
