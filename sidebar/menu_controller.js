@@ -4,9 +4,11 @@ export default class extends AriaController {
   static targets = ["dashNav", "btnToggle" ]
 
   connect = () => {
-    this.mobileChange();
-    window.addEventListener('resize', this.mobileChange);
-    this.activateItem();
+    if(this.hasDashNavTarget){
+      this.mobileChange();
+      window.addEventListener('resize', this.mobileChange);
+      this.activateItem();
+    }
   }
 
   activateItem = () => {
