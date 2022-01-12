@@ -15,7 +15,7 @@ module SidebarHelper
     end
   
     def sidebar_links
-      if current_user.admin? || current_user.manager?
+      if current_user.admin?
         admin_links
       else
         comum_links

@@ -6,6 +6,7 @@ inject_into_file 'Gemfile', before: 'group :development, :test do' do
   <<~RUBY
     gem 'devise'
 
+    gem 'inline_svg'
     gem 'autoprefixer-rails', '10.2.5'
     gem 'font-awesome-sass'
     gem 'simple_form'
@@ -27,6 +28,7 @@ gsub_file('Gemfile', /# gem 'redis'/, "gem 'redis'")
 run 'rm -rf app/assets/stylesheets'
 run 'rm -rf vendor'
 run 'curl -L https://github.com/lewagon/rails-stylesheets/archive/master.zip > stylesheets.zip'
+run 'curl https://raw.githubusercontent.com/Northern-Projects/templates/main/images/dash.svg > app/assets/images/dash.svg'
 run 'unzip stylesheets.zip -d app/assets && rm stylesheets.zip && mv app/assets/rails-stylesheets-master app/assets/stylesheets'
 gsub_file('app/assets/stylesheets/application.scss', '@import "bootstrap/scss/bootstrap";', '@import url("https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.css");')
 
@@ -105,10 +107,15 @@ after_bundle do
     .DS_Store
   TXT
 
-  # Devise install + user
+  # Devise install + user + admin
   ########################################
   generate('devise:install')
-  generate('devise', 'User')
+  generate('devise', 'User', "admin:boolean")
+
+  in_root do
+    migration = Dir.glob("db/migrate/*").max_by{ |f| File.mtime(f) }
+    gsub_file migration, /:admin/, ":admin,              null: false, default: false"
+  end
 
   # App controller
   ########################################
@@ -126,7 +133,7 @@ after_bundle do
 
   # Devise + Turbo
   ########################################
-  inject_into_file 'config/initializers/devise.rb', after: "# frozen_string_literal: true\n" do
+  inject_into_file 'config/initializers/devise.rb', after: "frozen_string_literal: true\n" do
     <<~RUBY
       Rails.application.reloader.to_prepare do
         class TurboFailureApp < Devise::FailureApp
@@ -165,6 +172,17 @@ after_bundle do
     RUBY
   end
 
+  gsub_file('config/initializers/devise.rb', "# config.parent_controller = 'DeviseController'", "config.parent_controller = 'TurboController'")
+  gsub_file('config/initializers/devise.rb', "# config.navigational_formats = ['*/*', :html]", "config.navigational_formats = ['*/*', :html, :turbo_stream]")
+
+  inject_into_file 'config/initializers/devise.rb', before: "# config.warden do |manager|" do
+    <<~RUBY
+      config.warden do |manager|
+          manager.failure_app = TurboFailureApp
+        end
+    RUBY
+  end
+
   # Pages Controller
   ########################################
   run 'rm app/controllers/pages_controller.rb'
@@ -192,6 +210,8 @@ after_bundle do
   run 'curl https://raw.githubusercontent.com/Northern-Projects/templates/main/sidebar/menu_controller.js > app/javascript/controllers/menu_controller.js'
   run 'curl https://raw.githubusercontent.com/Northern-Projects/templates/main/sidebar/aria_controller.js > app/javascript/controllers/aria_controller.js'
   run 'curl https://raw.githubusercontent.com/Northern-Projects/templates/main/sidebar/sidebar_helper.rb > app/helpers/sidebar_helper.rb'
+  run 'curl https://raw.githubusercontent.com/Northern-Projects/templates/main/sidebar/sidebar.scss > app/assets/stylesheets/components/_sidebar.scss'
+  inject_into_file "app/assets/stylesheets/components/_index.scss", after: '@import "navbar";\n', '@import "sidebar";\n"
   
   # Dotenv
   ########################################

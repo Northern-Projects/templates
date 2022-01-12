@@ -1,0 +1,339 @@
+// -------------------------------- DASH NAVBAR --------------------------------
+.dash-nav {
+  // Colors
+  background: $primary;
+  // Dimensions & Margin/Padding
+  min-height: 100vh;
+  height: 100%;
+  width: $nav-dash-max-width;
+  padding: $dash-padding;
+  padding-left: 0;
+  // Position
+  position: fixed;
+  align-items: center;
+  z-index: 10;
+  // Effects
+  transition: width .3s;
+  h2, h3 {
+    color: $white;
+  }
+  .logo {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    padding-left: 1rem;
+    img {
+      width: 112px;
+    }
+  }
+}
+
+.dash-nav.minimized {
+  width: $nav-dash-min-width;
+  #bars {
+    top: 4.5rem;
+    left: .6rem;
+  }
+  .dash-nav-item {
+    grid-template-columns: 2rem;
+  }
+  .logo {
+    flex-direction: column;
+    img {
+      width: 40px;
+    }
+  }
+  & ~ .menu-nav.dash {
+    padding-left: $nav-dash-min-width;
+  }
+  & ~ #content-wrap {
+  padding-left: $nav-dash-min-width + $dash-padding;
+  }
+  & ~ .dash-nav-nav {
+  padding-left: $nav-dash-min-width;
+  }
+}
+
+.dash-nav:not(.minimized) {
+  height: 100%;
+  & ~ #content-wrap {
+    padding-left: $nav-dash-max-width + $dash-padding;
+  }
+  & ~ .menu-nav.dash {
+    padding-left: $nav-dash-max-width;
+  }
+}
+// ------------------------------- NAVBAR LINKS --------------------------------
+.dash-nav-items {
+  justify-content: space-between;
+  position: relative;
+  width: inherit;
+}
+.dash-nav-options {
+  width: inherit;
+}
+// Styles for each link in the navbar
+.dash-nav-item {
+  // Colors
+  color: $white;
+  opacity: 0.8;
+  // Dimensions & Margin/Padding
+  height: 3rem;
+  margin: 0;
+  // Position & Display
+  align-items: center;
+  justify-content: center;
+  justify-items: flex-start;
+  position: relative;
+  // Display
+  display: grid;
+  grid-template-columns: 2rem 8rem;
+  grid-gap: .5rem;
+  gap: .5rem;
+  // Effects
+  transition: opacity .3s, transform .3s;
+  &:first-child {
+    margin-top: 1rem;
+  }
+  svg, img {
+    display: block;
+    fill: $white;
+    height: 1.5rem;;
+    margin: auto;
+    max-height: 1.75rem;
+  }
+  p {
+    font-size: .8rem;
+    margin: 0;
+  }
+  &:hover {
+    color: $white;
+    opacity: 1;
+    text-decoration: none;
+    text-shadow: 0px 0px 16px rgba(255, 255, 255, 0.5);
+  }
+  &.selected {
+    color: $primary;
+    svg {
+      fill: $primary;
+    }
+  }
+}
+// Link to the current page
+.dash-nav-item.active {
+  background: $secondary;
+  border-radius: 2rem;
+  color: $primary;
+  font-weight: 900;
+  opacity: 1;
+  transform: translateX(1rem);
+  svg {
+    fill: $primary;
+  }
+}
+
+// -------- BOTTOM NAVBAR THAT SHOWS UP WHEN THE WINDOW WIDTH IS SMALL ---------
+.menu-nav {
+  align-items: center;
+  background: $primary;
+  box-shadow: 0 0.1rem 0.3rem 0.01rem rgba(0, 0, 0, 0.8);
+  display: flex;
+  transition: padding .2s;
+  width: 100%;
+  position: fixed;
+  z-index: 10;
+  bottom: 0;
+  display: none;
+  button {
+    background: transparent;
+    border: none;
+  }
+  svg {
+    fill: $primary;
+    height: 2rem;
+    width: 3rem;
+  }
+}
+
+// ------------------------------ RESPONSIVENESS -------------------------------
+@media (min-width: $small) {
+  .dash-nav.minimized {
+    .dash-nav-item p {
+      border: 0;
+      padding: 0;
+      margin: 0;
+      position: absolute !important;
+      height: 1px;
+      width: 1px;
+      overflow: hidden;
+      clip: rect(1px 1px 1px 1px); /* IE6, IE7 - a 0 height clip, off to the bottom right of the visible 1px box */
+      clip: rect(1px, 1px, 1px, 1px); /*maybe deprecated but we need to support legacy browsers */
+      clip-path: inset(50%); /*modern browsers, clip-path works inwards from each corner*/
+      white-space: nowrap; /* added line to stop words getting smushed together (as they go onto seperate lines and some screen readers do not understand line feeds as a space */
+    }
+  }
+}
+// ----------------------- BREAKPOINT FOR LARGE SCREENS ------------------------
+//                          Shows the navbar minimized
+//                 Same breakpoint used in menu_controller.js
+@media (max-width: $large) {
+  .nav {
+    a {
+      font-size: 1.45vw;
+      line-height: 1.45vw;
+    }
+  }
+}
+// ----------------------- BREAKPOINT FOR SMALL SCREENS ------------------------
+//     Hides the navbar and shows the bottom bar with the hamburguer button
+@media (max-width: calc(#{$small} - 0.0625em)) {
+  .nav {
+    height: $nav-height-lg;
+    .logo {
+      img:first-child {
+        height: 11vw;
+      }
+      img:last-child {
+        height: 5vw;
+      }
+    }
+  }
+  .nav-min {
+    height: $nav-min-height-md;
+    align-items: center;
+    align-content: center;
+    .logo {
+      height: auto;
+      img:first-child {
+        height: 8vw;
+      }
+      img:last-child {
+        height: 0;
+      }
+    }
+  }
+  #navbar-links {
+    margin: 0px;
+    width: 100%;
+    flex-direction: column;
+    position: absolute;
+    left: 0;
+    top: 100%;
+    & > a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+    }
+    a {
+      background: $white;
+      font-size: 2.5vw;
+      line-height: 4vw;
+      transition: color .2s, background-color .3s;
+      &:hover {
+        background-color: $navy;
+      }
+    }
+  }
+  .dash-nav {
+    transition: transform .4s, visibility .4s;
+    height: calc(100vh - #{$menu-height});
+    margin-bottom: $menu-height;
+    visibility: visible;
+    & ~ .menu-nav {
+      padding-left: 0 !important;
+    }
+    .dash-nav-icons {
+      align-self: flex-end;
+      margin-bottom: 0;
+    }
+  }
+  .dash-nav.minimized {
+    width: $nav-dash-max-width;
+    transform: translateX(-$nav-dash-max-width);
+    visibility: hidden;
+    & ~.nav-dash-nav {
+      padding: 0;
+    }
+    & ~.menu-nav {
+      display: block;
+    }
+    & ~#content-wrap {
+      max-height: calc(100vh - #{$menu-height});
+      overflow: auto;
+      padding-left: 0;
+    }
+    #bars {
+      top: 1.5rem;
+    }
+    .dash-nav-icons {
+      margin-bottom: 0;
+    }
+    .dash-nav-item {
+      display: grid;
+      grid-template-columns: 2rem 8rem;
+      p {
+        opacity: 1;
+      }
+    }
+  }
+  .dash-nav-item {
+    height: $menu-height;
+    .active {
+      margin: 0 .5rem !important;
+      transform: translateX(1rem);
+    }
+  }
+  .menu-nav.dash {
+    top: auto;
+    position: fixed;
+    z-index: 10;
+    bottom: 0;
+    justify-content: space-between;
+    height: $menu-height;
+    svg {
+      fill: $white;
+    }
+  }
+}
+@media (max-width: $extra-small) {
+  .nav {
+    height: $nav-height-sm;
+    padding: .8rem 0;
+    a {
+      font-size: 1.2rem;
+      line-height: 2rem;
+    }
+    .logo {
+      img:first-child {
+        height: $nav-min-height-rem;
+      }
+      img:last-child {
+        height: 1.8rem;
+      }
+    }
+  }
+  .nav-min {
+    height: $nav-min-height-rem;
+    .logo {
+      img:first-child {
+        height: 3.5rem;
+      }
+      img:last-child {
+        height: 0;
+      }
+    }
+  }
+  #navbar-links {
+    a {
+      font-size: 1rem;
+      line-height: 1.8rem;
+    }
+  }
+}
+
+@media (min-height: 45em) {
+  .dash-nav-item {
+    margin-bottom: .5rem;
+  }
+}
