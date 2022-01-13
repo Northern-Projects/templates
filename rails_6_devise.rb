@@ -4,8 +4,8 @@ run "if uname | grep -q 'Darwin'; then pgrep spring | xargs kill -9; fi"
 ########################################
 inject_into_file 'Gemfile', before: 'group :development, :test do' do
   <<~RUBY
-    gem 'devise'
 
+    gem 'devise'
     gem 'inline_svg'
     gem 'autoprefixer-rails', '10.2.5'
     gem 'font-awesome-sass'
@@ -22,6 +22,7 @@ inject_into_file 'Gemfile', after: 'group :development, :test do' do
 end
 
 gsub_file('Gemfile', /# gem 'redis'/, "gem 'redis'")
+gsub_file('Gemfile', /gem 'turbolinks', '~> 5'/, "gem 'turbo-rails'")
 
 # Assets
 ########################################
@@ -31,7 +32,6 @@ run 'curl -L https://github.com/lewagon/rails-stylesheets/archive/master.zip > s
 run 'curl https://raw.githubusercontent.com/Northern-Projects/templates/main/images/dash.svg > app/assets/images/dash.svg'
 run 'curl https://raw.githubusercontent.com/Northern-Projects/templates/main/images/logout.svg > app/assets/images/logout.svg'
 run 'unzip stylesheets.zip -d app/assets && rm stylesheets.zip && mv app/assets/rails-stylesheets-master app/assets/stylesheets'
-gsub_file('app/assets/stylesheets/application.scss', '@import "bootstrap/scss/bootstrap";', '@import url("https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.css");')
 
 # Dev environment
 ########################################
@@ -39,10 +39,21 @@ gsub_file('config/environments/development.rb', /config\.assets\.debug.*/, 'conf
 
 # Layout
 ########################################
+if Rails.version < "6"
+  scripts = <<~HTML
+    <%= javascript_include_tag 'application', 'data-turbo-track': 'reload', defer: true %>
+        <%= javascript_pack_tag 'application', 'data-turbo-track': 'reload' %>
+  HTML
+  gsub_file('app/views/layouts/application.html.erb', "<%= javascript_include_tag 'application', 'data-turbolinks-track': 'reload' %>", scripts)
+end
+
+gsub_file('app/views/layouts/application.html.erb', "<%= javascript_pack_tag 'application', 'data-turbolinks-track': 'reload' %>", "<%= javascript_pack_tag 'application', 'data-turbo-track': 'reload', defer: true %>")
+
 style = <<~HTML
-  <%= stylesheet_link_tag 'application', media: 'all', 'data-turbo-track': 'reload' %>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+      <%= stylesheet_link_tag 'application', media: 'all', 'data-turbo-track': 'reload' %>
 HTML
-gsub_file('app/views/layouts/application.html.erb', '<%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>', style)
+gsub_file('app/views/layouts/application.html.erb', "<%= stylesheet_link_tag 'application', media: 'all', 'data-turbolinks-track': 'reload' %>", style)
 
 # Flashes
 ########################################
@@ -66,13 +77,13 @@ file 'app/views/shared/_flashes.html.erb', <<~HTML
 HTML
 
 base_layout = <<-HTML
-  <div data-controller="menu" >
-        <%= render 'shared/flashes' %>
-        <%= render 'shared/sidebar' if user_signed_in? %>
-        <div id="content-wrap" class="<%= user_signed_in? ? 'dash' : 'home f-column' %>">
-          <%= yield %>
-        </div>
+<div data-controller="menu" >
+      <%= render 'shared/flashes' %>
+      <%= render 'shared/sidebar' if user_signed_in? %>
+      <div id="content-wrap" class="<%= user_signed_in? ? 'dash' : 'home f-column' %>">
+        <%= yield %>
       </div>
+    </div>
 HTML
 
 gsub_file 'app/views/layouts/application.html.erb', '<%= yield %>', base_layout
@@ -137,6 +148,20 @@ after_bundle do
   rails_command 'db:migrate'
   generate('devise:views')
 
+  in_root do
+    migration = Dir.glob("db/migrate/*").max_by{ |f| File.mtime(f) }
+    gsub_file migration, /:admin/, ":admin,              null: false, default: false"
+  end
+
+  # Turbo
+  ########################################
+  inject_into_file 'config/cable.yml', after: "adapter: async\n" do
+    <<~YML
+      \s\surl: redis://localhost:6379/1
+    YML
+  end
+  gsub_file 'config/cable.yml', /async/, 'redis'
+
   # Devise + Turbo
   ########################################
   inject_into_file 'config/initializers/devise.rb', after: "frozen_string_literal: true\n" do
@@ -183,6 +208,7 @@ after_bundle do
 
   inject_into_file 'config/initializers/devise.rb', before: "# config.warden do |manager|" do
     <<~RUBY
+
         config.warden do |manager|
           manager.failure_app = TurboFailureApp
         end
@@ -206,10 +232,38 @@ after_bundle do
   environment 'config.action_mailer.default_url_options = { host: "http://localhost:3000" }', env: 'development'
   environment 'config.action_mailer.default_url_options = { host: "http://TODO_PUT_YOUR_DOMAIN_HERE" }', env: 'production'
 
-  # Bootstrap
+  # Webpacker / Yarn / Turbo
   ########################################
-  run './bin/importmap pin bootstrap'
-  
+  run 'yarn add popper.js jquery bootstrap@4.6 @hotwired/turbo-rails'
+  rails_command "webpacker:install:stimulus"
+  run "rm app/javascript/controllers/hello_controller.js"
+  gsub_file 'app/javascript/packs/application.js', /import Turbolinks from "turbolinks"/, 'import { Turbo } from "@hotwired/turbo-rails"'
+  gsub_file 'app/javascript/packs/application.js', /Turbolinks.start/, 'Turbo.start'
+  append_file 'app/javascript/packs/application.js', <<~JS
+
+    // External imports
+    import "bootstrap";
+
+    document.addEventListener('turbo:load', () => {
+    });
+  JS
+
+  inject_into_file 'config/webpack/environment.js', before: 'module.exports' do
+    <<~JS
+      const webpack = require('webpack');
+      // Preventing Babel from transpiling NodeModules packages
+      environment.loaders.delete('nodeModules');
+      // Bootstrap 4 has a dependency over jQuery & Popper.js:
+      environment.plugins.prepend('Provide',
+        new webpack.ProvidePlugin({
+          $: 'jquery',
+          jQuery: 'jquery',
+          Popper: ['popper.js', 'default']
+        })
+      );
+    JS
+  end
+
   # Sidebar
   ########################################
   run 'curl https://raw.githubusercontent.com/Northern-Projects/templates/main/sidebar/sidebar.html.erb > app/views/shared/_sidebar.html.erb'
@@ -220,13 +274,13 @@ after_bundle do
   run 'curl https://raw.githubusercontent.com/Northern-Projects/templates/main/sidebar/sizes.scss > app/assets/stylesheets/config/_sizes.scss'
   run 'curl https://raw.githubusercontent.com/Northern-Projects/templates/main/sidebar/container.scss > app/assets/stylesheets/components/_container.scss'
   inject_into_file "app/assets/stylesheets/components/_index.scss", after: "@import \"navbar\";\n" do 
-    '@import "sidebar";'
+    "@import \"sidebar\";\n"
   end
 
   inject_into_file "app/assets/stylesheets/application.scss", after: "@import \"config/colors\";\n" do 
-    '@import "config/sizes";'
+    "@import \"config/sizes\";\n"
   end
-  
+
   # Dotenv
   ########################################
   run 'touch .env'
